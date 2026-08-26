@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator wapnia — Luna / Masza</title>
+  <style>
+    :root{--bg:#f7f7f8;--card:#fff;--text:#202124;--muted:#69707d;--border:#dfe3e8;--accent:#2f6fed;--soft:#eef4ff;--warn:#9a6700}
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:820px;margin:auto;padding:20px 14px 50px} h1{font-size:1.55rem;margin:0 0 16px}
+    h2{font-size:1.06rem;margin:0 0 10px} h3{font-size:.98rem;margin:18px 0 6px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+    .seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .seg label{border:1px solid var(--border);border-radius:10px;padding:11px;text-align:center;font-weight:700;cursor:pointer}
+    .seg input{display:none}.seg label:has(input:checked){border-color:var(--accent);outline:2px solid #dce8ff}
+    .row{display:grid;grid-template-columns:28px minmax(0,1fr) 110px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f2}
+    .row:last-child{border-bottom:0}.row input[type=checkbox]{width:20px;height:20px}
+    .grams,.eggCount{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:9px;font-size:1rem}
+    .grams:disabled,.eggCount:disabled{opacity:.45;background:#f3f4f6}
+    .eggFields{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .eggWrap{display:grid;grid-template-columns:28px minmax(0,1fr) 220px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f2}
+    select{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:9px;background:white;font-size:1rem}
+    .muted{color:var(--muted);font-size:.9rem}.small{font-size:.84rem;color:var(--muted);line-height:1.5}
+    .result{font-size:1.12rem;line-height:1.6}.big{font-size:1.5rem;font-weight:800}
+    .pill{display:inline-block;background:var(--soft);padding:3px 8px;border-radius:999px;font-size:.82rem;margin:4px 5px 0 0;color:#294f9b}
+    .debug{margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}.warning{margin-top:9px;color:var(--warn);font-size:.9rem}
+    .summary{margin-top:8px;font-size:.9rem;line-height:1.5}
+    @media(max-width:620px){.row{grid-template-columns:26px minmax(0,1fr) 88px}.eggWrap{grid-template-columns:26px minmax(0,1fr);align-items:start}.eggFields{grid-column:2;grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kalkulator wapnia + Multical</h1>
+
+  <section class="card">
+    <h2>1. Zwierzak</h2>
+    <div class="seg">
+      <label><input type="radio" name="animal" value="dog" checked>🐶 Luna — pies</label>
+      <label><input type="radio" name="animal" value="cat">🐱 Masza — kot</label>
+    </div>
+    <p id="ratioInfo" class="muted"></p>
+  </section>
+
+  <section class="card">
+    <h2>2. Skład porcji</h2>
+    <p class="muted">Możesz zaznaczyć kilka mięs naraz — kalkulator sumuje ich Ca i P osobno.</p>
+    <h3>Mięso</h3><div id="meatRows"></div>
+    <h3>Ryba</h3><div id="fishRows"></div>
+    <h3>Podroby</h3><div id="organRows"></div>
+
+    <h3>Jajko</h3>
+    <div class="eggWrap">
+      <input class="ingredient-check" type="checkbox" data-id="egg" id="eggCheck">
+      <label for="eggCheck">Jajko całe</label>
+      <div class="eggFields">
+        <input id="eggCount" class="eggCount" type="number" min="0" step="0.5" placeholder="szt. np. 1,5" disabled>
+        <input id="eggGrams" class="grams" type="number" min="0" step="1" placeholder="gramy opcj." disabled>
+      </div>
+    </div>
+    <div class="small">Jeśli podasz gramy, mają pierwszeństwo. Jeśli gramów brak: liczba jaj × 55 g. Jeśli nic nie wpiszesz: 1 jajko = 55 g.</div>
+  </section>
+
+  <section class="card">
+    <h2>3. Źródło wapnia</h2>
+    <select id="calciumSource">
+      <option value="algae">Holista Calcium Algae — 30% Ca</option>
+      <option value="citrate">Holista Calcium Citrate — 22,7% Ca</option>
+      <option value="carbonate">Holista Węglan wapnia — 41,5% Ca</option>
+      <option value="eggshell">Holista Wapń ze skorupek — 43,3% Ca</option>
+    </select>
+  </section>
+
+  <section class="card result">
+    <h2>Wynik dla całej porcji</h2>
+    <div>Multical: <span id="multicalResult" class="big">0,00 g</span></div>
+    <div>Wapń: <span id="calciumResult" class="big">0,00 g</span></div>
+    <div id="sourceName" class="muted"></div>
+    <div class="summary" id="ingredientSummary"></div>
+    <div class="debug">
+      <span class="pill">Masa porcji: <span id="totalWeight">0</span> g</span>
+      <span class="pill">Ca z jedzenia: <span id="foodCa">0</span> mg</span>
+      <span class="pill">P z jedzenia: <span id="foodP">0</span> mg</span>
+      <span class="pill">Ca:P po suplementach: <span id="finalRatio">—</span></span>
+    </div>
+    <div id="warning" class="warning"></div>
+  </section>
+
+  <section class="card small">
+    <strong>Założenia.</strong> Wartości Ca/P dotyczą surowych produktów i są liczone na 100 g.
+    Mięsa: kurczak — pierś bez skóry, indyk — pierś, wołowina — mielona 85% lean,
+    królik — composite of cuts, wieprzowina — chudy schab, sarna — deer raw,
+    kaczka — mięso bez skóry. W mieszanej porcji każdy składnik liczony jest osobno.
+    Multical pozostaje według naszego schematu: 0,50 g / 100 g składników zwierzęcych.
+  </section>
+</div>
+
+<script>
+const INGREDIENTS = {
+  chicken:{group:"meat",name:"Kurczak",ca:5,p:213},
+  turkey:{group:"meat",name:"Indyk",ca:11,p:201},
+  beef:{group:"meat",name:"Wołowina",ca:15,p:171},
+  rabbit:{group:"meat",name:"Królik",ca:13,p:213},
+  pork:{group:"meat",name:"Wieprzowina",ca:5,p:234},
+  venison:{group:"meat",name:"Sarna",ca:5,p:202},
+  duck:{group:"meat",name:"Kaczka",ca:12,p:221},
+
+  trout:{group:"fish",name:"Pstrąg tęczowy",ca:25,p:226},
+
+  chickenHeart:{group:"organ",name:"Serca kurczaka",ca:12,p:177},
+  turkeyHeart:{group:"organ",name:"Serca indycze",ca:18,p:183},
+  chickenLiver:{group:"organ",name:"Wątróbka kurczaka",ca:8,p:297},
+  turkeyLiver:{group:"organ",name:"Wątróbka indycza",ca:20,p:279},
+  chickenGizzard:{group:"organ",name:"Żołądki kurczaka",ca:11,p:148},
+
+  egg:{group:"egg",name:"Jajko",ca:56,p:198}
+};
+
+const MULTICAL={dosePer100gFood:0.50,caMgPerGram:225,pMgPerGram:75};
+const CALCIUM_SOURCES={
+  algae:{name:"Holista Calcium Algae",caMgPerGram:300,pMgPerGram:0},
+  citrate:{name:"Holista Calcium Citrate",caMgPerGram:227,pMgPerGram:0},
+  carbonate:{name:"Holista Węglan wapnia",caMgPerGram:415,pMgPerGram:0},
+  eggshell:{name:"Holista Wapń ze skorupek",caMgPerGram:433,pMgPerGram:1.2}
+};
+const TARGETS={dog:{name:"Luna",ratio:1.20},cat:{name:"Masza",ratio:1.15}};
+
+function makeRows(group,containerId){
+  const host=document.getElementById(containerId);
+  Object.entries(INGREDIENTS).filter(([_,x])=>x.group===group).forEach(([id,x])=>{
+    const row=document.createElement("div");
+    row.className="row";
+    row.innerHTML=`<input class="ingredient-check" type="checkbox" data-id="${id}" id="${id}Check">
+      <label for="${id}Check">${x.name}</label>
+      <input class="grams" type="number" min="0" step="1" data-id="${id}" placeholder="g" disabled>`;
+    host.appendChild(row);
+  });
+}
+makeRows("meat","meatRows"); makeRows("fish","fishRows"); makeRows("organ","organRows");
+
+function fmt(n,d=2){return Number(n).toLocaleString("pl-PL",{minimumFractionDigits:d,maximumFractionDigits:d});}
+function getAnimal(){return document.querySelector('input[name="animal"]:checked').value;}
+function eggWeight(){
+  if(!document.getElementById("eggCheck").checked) return 0;
+  const grams=Number(document.getElementById("eggGrams").value);
+  if(grams>0) return grams;
+  const raw=document.getElementById("eggCount").value.trim();
+  const count=raw===""?1:Number(raw);
+  return Math.max(0,count||0)*55;
+}
+
+function calculate(){
+  const target=TARGETS[getAnimal()];
+  const calciumSource=CALCIUM_SOURCES[document.getElementById("calciumSource").value];
+  let totalWeight=0,foodCa=0,foodP=0; const parts=[];
+
+  document.querySelectorAll(".ingredient-check").forEach(check=>{
+    if(!check.checked) return;
+    const id=check.dataset.id, ing=INGREDIENTS[id];
+    let grams=id==="egg"?eggWeight():Number(document.querySelector(`.grams[data-id="${id}"]`)?.value)||0;
+    if(grams<=0) return;
+    totalWeight+=grams; foodCa+=ing.ca*grams/100; foodP+=ing.p*grams/100;
+    parts.push(`${ing.name}: ${fmt(grams,0)} g`);
+  });
+
+  const multicalGrams=totalWeight*MULTICAL.dosePer100gFood/100;
+  const ca0=foodCa+multicalGrams*MULTICAL.caMgPerGram;
+  const p0=foodP+multicalGrams*MULTICAL.pMgPerGram;
+  const numerator=target.ratio*p0-ca0;
+  const denominator=calciumSource.caMgPerGram-target.ratio*calciumSource.pMgPerGram;
+  let calciumGrams=denominator>0?numerator/denominator:0;
+  if(!Number.isFinite(calciumGrams)||calciumGrams<0) calciumGrams=0;
+
+  const finalCa=ca0+calciumGrams*calciumSource.caMgPerGram;
+  const finalP=p0+calciumGrams*calciumSource.pMgPerGram;
+  const finalRatio=finalP>0?finalCa/finalP:0;
+
+  document.getElementById("multicalResult").textContent=`${fmt(multicalGrams)} g`;
+  document.getElementById("calciumResult").textContent=`${fmt(calciumGrams)} g`;
+  document.getElementById("sourceName").textContent=calciumSource.name;
+  document.getElementById("totalWeight").textContent=fmt(totalWeight,0);
+  document.getElementById("foodCa").textContent=fmt(foodCa,0);
+  document.getElementById("foodP").textContent=fmt(foodP,0);
+  document.getElementById("finalRatio").textContent=totalWeight>0?`${fmt(finalRatio)} : 1`:"—";
+  document.getElementById("ratioInfo").textContent=`${target.name}: docelowy Ca:P = ${fmt(target.ratio)} : 1`;
+  document.getElementById("ingredientSummary").textContent=parts.length?`Porcja: ${parts.join(" + ")}`:"";
+  document.getElementById("warning").textContent=totalWeight===0?"Zaznacz składniki i wpisz gramy.":(numerator<=0?"Pokarm + Multical osiąga lub przekracza docelowy Ca:P; dodatkowy wapń = 0 g.":"");
+}
+
+document.querySelectorAll(".ingredient-check").forEach(check=>{
+  check.addEventListener("change",()=>{
+    const id=check.dataset.id;
+    if(id==="egg"){
+      const count=document.getElementById("eggCount"), grams=document.getElementById("eggGrams");
+      count.disabled=!check.checked; grams.disabled=!check.checked;
+      if(!check.checked){count.value="";grams.value="";} else count.focus();
+    }else{
+      const input=document.querySelector(`.grams[data-id="${id}"]`);
+      input.disabled=!check.checked; if(!check.checked) input.value=""; else input.focus();
+    }
+    calculate();
+  });
+});
+document.querySelectorAll(".grams,.eggCount").forEach(x=>x.addEventListener("input",calculate));
+document.querySelectorAll('input[name="animal"]').forEach(x=>x.addEventListener("change",calculate));
+document.getElementById("calciumSource").addEventListener("change",calculate);
+calculate();
+</script>
+</body>
+</html>
