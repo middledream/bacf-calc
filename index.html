@@ -87,22 +87,31 @@
 
   <section class="card small">
     <strong>Założenia.</strong> Wartości Ca/P dotyczą surowych produktów i są liczone na 100 g.
-    Mięsa: kurczak — pierś bez skóry, indyk — pierś, wołowina — mielona 85% lean,
-    królik — composite of cuts, wieprzowina — chudy schab, sarna — deer raw,
-    kaczka — mięso bez skóry. W mieszanej porcji każdy składnik liczony jest osobno.
-    Multical pozostaje według naszego schematu: 0,50 g / 100 g składników zwierzęcych.
+    Mięsa: kurczak — pierś bez skóry; indyk — pierś albo udo bez skóry; wołowina —
+    łopatka (chuck/shoulder); wieprzowina — szynka; sarna — surowe mięso jelenia;
+    kaczka — mięso ze skórą. Dla combra królika zastosowano rekord „królik domowy,
+    zestaw kawałków”, a dla piersi kaczki ze skórą — „kaczka domowa, mięso ze skórą”;
+    oba są najbliższymi dostępnymi rekordami USDA, a nie pomiarem dokładnie tego cięcia.
+    „Sarna gulaszowa” także jest przybliżona rekordem surowego mięsa jelenia, ponieważ
+    nazwa handlowa nie wskazuje jednego mięśnia. W mieszanej porcji każdy składnik liczony
+    jest osobno. Multical pozostaje według naszego schematu: 0,50 g / 100 g składników
+    zwierzęcych (225 mg Ca i 75 mg P / g).
+    <br><br>
+    <strong>Źródło rekordów mięsa:</strong> USDA FoodData Central, SR Legacy (FDC ID:
+    171077, 171098, 171531, 172132, 172521, 168222, 173855 i 172408).
   </section>
 </div>
 
 <script>
 const INGREDIENTS = {
-  chicken:{group:"meat",name:"Kurczak",ca:5,p:213},
-  turkey:{group:"meat",name:"Indyk",ca:11,p:201},
-  beef:{group:"meat",name:"Wołowina",ca:15,p:171},
-  rabbit:{group:"meat",name:"Królik",ca:13,p:213},
-  pork:{group:"meat",name:"Wieprzowina",ca:5,p:234},
-  venison:{group:"meat",name:"Sarna",ca:5,p:202},
-  duck:{group:"meat",name:"Kaczka",ca:12,p:221},
+  chicken:{group:"meat",name:"Kurczak — pierś bez skóry",ca:5,p:213},
+  turkeyBreast:{group:"meat",name:"Indyk — pierś bez skóry",ca:11,p:201},
+  turkeyThigh:{group:"meat",name:"Indyk — udo bez skóry",ca:11,p:176},
+  beef:{group:"meat",name:"Wołowina — łopatka (chuck/shoulder)",ca:4,p:215},
+  rabbit:{group:"meat",name:"Królik — comber (przybliżenie)",ca:13,p:213},
+  pork:{group:"meat",name:"Wieprzowina — szynka",ca:5,p:199},
+  venison:{group:"meat",name:"Sarna — mięso gulaszowe (przybliżenie)",ca:5,p:202},
+  duck:{group:"meat",name:"Kaczka — pierś ze skórą (przybliżenie)",ca:11,p:139},
 
   trout:{group:"fish",name:"Pstrąg tęczowy",ca:25,p:226},
 
