@@ -39,6 +39,7 @@
       <label><input type="radio" name="animal" value="cat">🐱 Masza — kot</label>
     </div>
     <p id="ratioInfo" class="muted"></p>
+    <p id="animalSupplements" class="small"></p>
   </section>
 
   <section class="card">
@@ -61,7 +62,14 @@
   </section>
 
   <section class="card">
-    <h2>3. Źródło wapnia</h2>
+    <h2>3. Suplementacja</h2>
+    <p class="muted">Wybierz, czy do wybranego wapnia dodajesz też Multical.</p>
+    <div class="seg" id="supplementMode">
+      <label><input type="radio" name="supplementMode" value="withMultical" checked>Multical + wapń</label>
+      <label><input type="radio" name="supplementMode" value="calciumOnly">Sam wapń</label>
+    </div>
+    <p class="small"><strong>Twój schemat:</strong> wybierz <strong>sam wapń</strong>, gdy podajesz Vetfood Vitactive albo inny preparat multiwitaminowy. Wybierz <strong>Multical + wapń</strong>, gdy podajesz Vitamin Balancer / Superfood Vitamins, witaminę E, witaminę D, tran lub algi (kelp).</p>
+    <h3>Źródło wapnia</h3>
     <select id="calciumSource">
       <option value="algae">Holista Calcium Algae — 30% Ca</option>
       <option value="citrate">Holista Calcium Citrate — 22,7% Ca</option>
@@ -72,7 +80,7 @@
 
   <section class="card result">
     <h2>Wynik dla całej porcji</h2>
-    <div>Multical: <span id="multicalResult" class="big">0,00 g</span></div>
+    <div id="multicalLine">Multical: <span id="multicalResult" class="big">0,00 g</span></div>
     <div>Wapń: <span id="calciumResult" class="big">0,00 g</span></div>
     <div id="sourceName" class="muted"></div>
     <div class="summary" id="ingredientSummary"></div>
@@ -148,6 +156,7 @@ makeRows("meat","meatRows"); makeRows("fish","fishRows"); makeRows("organ","orga
 
 function fmt(n,d=2){return Number(n).toLocaleString("pl-PL",{minimumFractionDigits:d,maximumFractionDigits:d});}
 function getAnimal(){return document.querySelector('input[name="animal"]:checked').value;}
+function usesMultical(){return document.querySelector('input[name="supplementMode"]:checked').value==="withMultical";}
 function eggWeight(){
   if(!document.getElementById("eggCheck").checked) return 0;
   const grams=Number(document.getElementById("eggGrams").value);
@@ -171,7 +180,7 @@ function calculate(){
     parts.push(`${ing.name}: ${fmt(grams,0)} g`);
   });
 
-  const multicalGrams=totalWeight*MULTICAL.dosePer100gFood/100;
+  const multicalGrams=usesMultical()?totalWeight*MULTICAL.dosePer100gFood/100:0;
   const ca0=foodCa+multicalGrams*MULTICAL.caMgPerGram;
   const p0=foodP+multicalGrams*MULTICAL.pMgPerGram;
   const numerator=target.ratio*p0-ca0;
@@ -184,6 +193,7 @@ function calculate(){
   const finalRatio=finalP>0?finalCa/finalP:0;
 
   document.getElementById("multicalResult").textContent=`${fmt(multicalGrams)} g`;
+  document.getElementById("multicalLine").style.display=usesMultical()?"block":"none";
   document.getElementById("calciumResult").textContent=`${fmt(calciumGrams)} g`;
   document.getElementById("sourceName").textContent=calciumSource.name;
   document.getElementById("totalWeight").textContent=fmt(totalWeight,0);
@@ -191,6 +201,10 @@ function calculate(){
   document.getElementById("foodP").textContent=fmt(foodP,0);
   document.getElementById("finalRatio").textContent=totalWeight>0?`${fmt(finalRatio)} : 1`:"—";
   document.getElementById("ratioInfo").textContent=`${target.name}: docelowy Ca:P = ${fmt(target.ratio)} : 1`;
+  document.getElementById("animalSupplements").innerHTML=getAnimal()==="dog"
+    ?"<strong>Luna:</strong> Holista Arthro Junior + MSM."
+    :"<strong>Masza:</strong> małża nowozelandzka + MSM. <strong>Do czasu wyników badań: bez kelpu.</strong>";
+  document.getElementById("animalSupplements").innerHTML+=`<br><strong>Obie:</strong> szczypta soli BARF oraz Norsan Arktis lub Omega-3 wymiennie. Przy rybie w posiłku częściej Arktis; przy Vetfood Vitactive preferowane Omega-3.`;
   document.getElementById("ingredientSummary").textContent=parts.length?`Porcja: ${parts.join(" + ")}`:"";
   document.getElementById("warning").textContent=totalWeight===0?"Zaznacz składniki i wpisz gramy.":(numerator<=0?"Pokarm + Multical osiąga lub przekracza docelowy Ca:P; dodatkowy wapń = 0 g.":"");
 }
@@ -210,7 +224,7 @@ document.querySelectorAll(".ingredient-check").forEach(check=>{
   });
 });
 document.querySelectorAll(".grams,.eggCount").forEach(x=>x.addEventListener("input",calculate));
-document.querySelectorAll('input[name="animal"]').forEach(x=>x.addEventListener("change",calculate));
+document.querySelectorAll('input[name="animal"],input[name="supplementMode"]').forEach(x=>x.addEventListener("change",calculate));
 document.getElementById("calciumSource").addEventListener("change",calculate);
 calculate();
 </script>
